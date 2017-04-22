@@ -48,13 +48,9 @@ fn get_dir_size(map: &mut HashMap<String, u64>,
   total
 }
 
-fn main() {
-  let mut map = HashMap::new();
-  let csvfile_str = CSV_FILE;
-  let csvfile = Path::new(csvfile_str);
-
+fn load_or_create_csvfile(csvfile: &Path, map: &mut HashMap<String, u64>) {
   if csvfile.exists() {
-    println!("Loading {}...", csvfile_str);
+    println!("Loading {}...", csvfile.to_str().unwrap());
     let mut reader = csv::Reader::from_file(csvfile).unwrap();
     for record in reader.decode() {
       let (path_str, size): (String, u64) = record.unwrap();
@@ -65,6 +61,38 @@ fn main() {
     let mut file = fs::File::create(csvfile).unwrap();
     file.write_all(b"Directory,Size\n").unwrap();
   }
+}
+
+fn create_biggest_csvfile(csvfile: &Path, map: &HashMap<String, u64>,
+                          big_size: &u64) {
+  let mut vec = Vec::new();
+
+  for (path_str, path_size) in map.iter() {
+    if path_size >= big_size {
+      vec.push((path_str, path_size));
+    }
+  }
+
+  vec.sort_by_key(|&(_, size)| size );
+
+  println!("{} directories are bigger than {} bytes.", vec.len(), big_size);
+
+  let mut csv_writer = csv::Writer::from_file(csvfile).unwrap();
+
+  csv_writer.encode(("Directory", "Size")).unwrap();
+
+  for &(path_str, path_size) in vec.iter() {
+    csv_writer.encode((path_str, path_size)).unwrap();
+  }
+
+  println!("Wrote {}.", csvfile.to_str().unwrap());
+}
+
+fn main() {
+  let mut map = HashMap::new();
+  let csvfile = Path::new(CSV_FILE);
+
+  load_or_create_csvfile(&csvfile, &mut map);
 
   let mut root_path = env::current_dir().unwrap();
 
@@ -78,27 +106,5 @@ fn main() {
 
   println!("Total size of {:?} is {} bytes.", root_path, size);
 
-  let mut vec = Vec::new();
-
-  for (path_str, path_size) in map.iter() {
-    if path_size >= BIG_SIZE {
-      vec.push((path_str, path_size));
-    }
-  }
-
-  vec.sort_by_key(|&(_, size)| size );
-
-  println!("{} directories are bigger than {} bytes.", vec.len(), BIG_SIZE);
-
-  let mut biggest_csv_writer = csv::Writer::from_file(Path::new(
-    BIGGEST_CSV_FILE
-  )).unwrap();
-
-  biggest_csv_writer.encode(("Directory", "Size")).unwrap();
-
-  for &(path_str, path_size) in vec.iter() {
-    biggest_csv_writer.encode((path_str, path_size)).unwrap();
-  }
-
-  println!("Wrote {}.", BIGGEST_CSV_FILE);
+  create_biggest_csvfile(&Path::new(BIGGEST_CSV_FILE), &map, BIG_SIZE);
 }
