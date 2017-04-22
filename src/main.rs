@@ -13,6 +13,7 @@ use std::collections::HashMap;
 const CSV_FILE: &'static str = "dirs.csv";
 const BIGGEST_CSV_FILE: &'static str = "biggest_dirs.csv";
 const BIG_SIZE: &'static u64 = &100_000_000;
+const MED_SIZE: &'static u64 = &10_000_000;
 
 type DirMap = HashMap<String, u64>;
 
@@ -30,7 +31,7 @@ impl AccumulatedBytes {
     self.count += count;
 
     if self.last_reported_count == 0 ||
-       self.count - self.last_reported_count >= *BIG_SIZE {
+       self.count - self.last_reported_count >= *MED_SIZE {
       let mut console = io::stdout();
       write!(console, "\rCounted {} bytes.", nice_num(self.count)).unwrap();
       console.flush().unwrap();
