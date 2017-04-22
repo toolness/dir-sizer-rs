@@ -21,17 +21,22 @@ fn get_dir_size(map: &mut HashMap<String, u64>,
 
   let mut total = 0;
 
-  println!("Calculating size of {}.", path_str);
-
-  for wrapped_entry in fs::read_dir(path).unwrap() {
-    let entry = wrapped_entry.unwrap();
-    let subpath = entry.path();
-    let metadata = entry.metadata().unwrap();
-    if metadata.is_dir() {
-      total += get_dir_size(map, writer, &subpath);
-    } else {
-      total += metadata.len();
-    }
+  match fs::read_dir(path) {
+    Ok(read_dir) => {
+      for wrapped_entry in read_dir {
+        let entry = wrapped_entry.unwrap();
+        let subpath = entry.path();
+        let metadata = entry.metadata().unwrap();
+        if metadata.is_dir() {
+          total += get_dir_size(map, writer, &subpath);
+        } else {
+          total += metadata.len();
+        }
+      }
+    },
+    Err(e) => {
+      println!("Error accessing {}: {}.", path_str, e);
+    },
   }
 
   map.insert(String::from(path_str), total);
@@ -42,14 +47,17 @@ fn get_dir_size(map: &mut HashMap<String, u64>,
 
 fn main() {
   let mut map = HashMap::new();
-  let csvfile = Path::new(CSV_FILE);
+  let csvfile_str = CSV_FILE;
+  let csvfile = Path::new(csvfile_str);
 
   if csvfile.exists() {
+    println!("Loading {}...", csvfile_str);
     let mut reader = csv::Reader::from_file(csvfile).unwrap();
     for record in reader.decode() {
       let (path_str, size): (String, u64) = record.unwrap();
       map.insert(path_str, size);
     }
+    println!("Loaded {} record(s).", map.len());
   } else {
     let mut file = fs::File::create(csvfile).unwrap();
     file.write_all(b"Directory,Size\n").unwrap();
