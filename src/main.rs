@@ -14,6 +14,8 @@ const CSV_FILE: &'static str = "dirs.csv";
 const BIGGEST_CSV_FILE: &'static str = "biggest_dirs.csv";
 const BIG_SIZE: &'static u64 = &100_000_000;
 
+type DirMap = HashMap<String, u64>;
+
 struct AccumulatedBytes {
   count: u64,
   last_reported_count: u64,
@@ -82,7 +84,7 @@ fn nice_num_works() {
   assert_eq!(nice_num(1987651534), "1,987,651,534");
 }
 
-fn get_dir_size(map: &mut HashMap<String, u64>,
+fn get_dir_size(map: &mut DirMap,
                 writer: &mut csv::Writer<fs::File>,
                 path: &Path,
                 accumulator: &mut AccumulatedBytes) -> u64 {
@@ -119,7 +121,7 @@ fn get_dir_size(map: &mut HashMap<String, u64>,
   total
 }
 
-fn load_or_create_csvfile(csvfile: &Path, map: &mut HashMap<String, u64>) {
+fn load_or_create_csvfile(csvfile: &Path, map: &mut DirMap) {
   if csvfile.exists() {
     println!("Loading {}...", csvfile.to_str().unwrap());
     let mut reader = csv::Reader::from_file(csvfile).unwrap();
@@ -134,8 +136,7 @@ fn load_or_create_csvfile(csvfile: &Path, map: &mut HashMap<String, u64>) {
   }
 }
 
-fn create_biggest_csvfile(csvfile: &Path, map: &HashMap<String, u64>,
-                          big_size: &u64) {
+fn create_biggest_csvfile(csvfile: &Path, map: &DirMap, big_size: &u64) {
   let mut vec = Vec::new();
 
   for (path_str, path_size) in map.iter() {
