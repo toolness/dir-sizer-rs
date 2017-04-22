@@ -26,7 +26,8 @@ impl AccumulatedBytes {
   fn add(&mut self, count: u64) -> u64 {
     self.count += count;
 
-    if self.count - self.last_reported_count >= *BIG_SIZE {
+    if self.last_reported_count == 0 ||
+       self.count - self.last_reported_count >= *BIG_SIZE {
       let mut console = io::stdout();
       write!(console, "\rCounted {} bytes.", self.count).unwrap();
       console.flush().unwrap();
@@ -35,6 +36,11 @@ impl AccumulatedBytes {
     }
 
     count
+  }
+
+  fn report_access_error(&mut self, path: &str, e: io::Error) {
+    println!("\rError accessing {}: {}.", path, e);
+    self.last_reported_count = 0;
   }
 }
 
@@ -65,7 +71,7 @@ fn get_dir_size(map: &mut HashMap<String, u64>,
       }
     },
     Err(e) => {
-      println!("\rError accessing {}: {}.", path_str, e);
+      accumulator.report_access_error(path_str, e);
     },
   }
 
