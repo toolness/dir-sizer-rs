@@ -1,5 +1,5 @@
 [package]
-name = "dir-size-fun"
+name = "dir-sizer"
 version = "0.1.0"
 authors = ["Atul Varma <varmaa@gmail.com>"]
 
