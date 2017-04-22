@@ -3,6 +3,7 @@ extern crate csv;
 use std::io::prelude::*;
 use std::io;
 use std::env;
+use std::fmt::Display;
 use std::path::PathBuf;
 use std::path::Path;
 use std::vec::Vec;
@@ -29,7 +30,7 @@ impl AccumulatedBytes {
     if self.last_reported_count == 0 ||
        self.count - self.last_reported_count >= *BIG_SIZE {
       let mut console = io::stdout();
-      write!(console, "\rCounted {} bytes.", nice_u64(self.count)).unwrap();
+      write!(console, "\rCounted {} bytes.", nice_num(self.count)).unwrap();
       console.flush().unwrap();
 
       self.last_reported_count = self.count;
@@ -44,7 +45,7 @@ impl AccumulatedBytes {
   }
 }
 
-fn nice_u64(number: u64) -> String {
+fn nice_num<T: Display>(number: T) -> String {
   let mut result = String::new();
   let num_str = format!("{}", number);
   let num_digits = num_str.len();
@@ -68,17 +69,17 @@ fn nice_u64(number: u64) -> String {
 }
 
 #[test]
-fn nice_u64_works() {
-  assert_eq!(nice_u64(1), "1");
-  assert_eq!(nice_u64(15), "15");
-  assert_eq!(nice_u64(153), "153");
-  assert_eq!(nice_u64(1534), "1,534");
-  assert_eq!(nice_u64(51534), "51,534");
-  assert_eq!(nice_u64(651534), "651,534");
-  assert_eq!(nice_u64(7651534), "7,651,534");
-  assert_eq!(nice_u64(87651534), "87,651,534");
-  assert_eq!(nice_u64(987651534), "987,651,534");
-  assert_eq!(nice_u64(1987651534), "1,987,651,534");
+fn nice_num_works() {
+  assert_eq!(nice_num(1), "1");
+  assert_eq!(nice_num(15), "15");
+  assert_eq!(nice_num(153), "153");
+  assert_eq!(nice_num(1534), "1,534");
+  assert_eq!(nice_num(51534), "51,534");
+  assert_eq!(nice_num(651534), "651,534");
+  assert_eq!(nice_num(7651534), "7,651,534");
+  assert_eq!(nice_num(87651534), "87,651,534");
+  assert_eq!(nice_num(987651534), "987,651,534");
+  assert_eq!(nice_num(1987651534), "1,987,651,534");
 }
 
 fn get_dir_size(map: &mut HashMap<String, u64>,
@@ -126,7 +127,7 @@ fn load_or_create_csvfile(csvfile: &Path, map: &mut HashMap<String, u64>) {
       let (path_str, size): (String, u64) = record.unwrap();
       map.insert(path_str, size);
     }
-    println!("Loaded {} record(s).", nice_u64(map.len() as u64));
+    println!("Loaded {} record(s).", nice_num(map.len()));
   } else {
     let mut file = fs::File::create(csvfile).unwrap();
     file.write_all(b"Directory,Size\n").unwrap();
@@ -146,7 +147,7 @@ fn create_biggest_csvfile(csvfile: &Path, map: &HashMap<String, u64>,
   vec.sort_by_key(|&(_, size)| size );
 
   println!("{} directories are bigger than {} bytes.",
-           nice_u64(vec.len() as u64), nice_u64(*big_size));
+           nice_num(vec.len()), nice_num(*big_size));
 
   let mut csv_writer = csv::Writer::from_file(csvfile).unwrap();
 
@@ -178,7 +179,7 @@ fn main() {
                           &mut accumulator);
 
   println!("\nTotal size of {} is {} bytes.",
-           root_path.to_str().unwrap(), nice_u64(size));
+           root_path.to_str().unwrap(), nice_num(size));
 
   create_biggest_csvfile(&Path::new(BIGGEST_CSV_FILE), &map, BIG_SIZE);
 }
