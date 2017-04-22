@@ -1,11 +1,12 @@
 extern crate csv;
 
 use std::io::prelude::*;
+use std::env;
+use std::path::PathBuf;
 use std::path::Path;
 use std::fs;
 use std::collections::HashMap;
 
-const ROOT_DIR: &'static str = "C:\\utils";
 const CSV_FILE: &'static str = "dirs.csv";
 
 fn get_dir_size(map: &mut HashMap<String, u64>,
@@ -54,10 +55,15 @@ fn main() {
     file.write_all(b"Directory,Size\n").unwrap();
   }
 
-  let root_path = Path::new(ROOT_DIR);
+  let mut root_path = env::current_dir().unwrap();
+
+  if env::args().count() >= 2 {
+    root_path = PathBuf::from(env::args().nth(1).unwrap());
+  }
+
   let file = fs::OpenOptions::new().append(true).open(csvfile).unwrap();
   let mut writer = csv::Writer::from_writer(file);
-  let size = get_dir_size(&mut map, &mut writer, root_path);
+  let size = get_dir_size(&mut map, &mut writer, root_path.as_path());
 
   println!("Total size of {:?} is {}.", root_path, size);
 }
