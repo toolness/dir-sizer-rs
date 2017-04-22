@@ -12,8 +12,8 @@ use std::collections::HashMap;
 
 const CSV_FILE: &'static str = "dirs.csv";
 const BIGGEST_CSV_FILE: &'static str = "biggest_dirs.csv";
-const BIG_SIZE: &'static u64 = &100_000_000;
-const MED_SIZE: &'static u64 = &10_000_000;
+const BIG_SIZE: u64 = 100_000_000;
+const MED_SIZE: u64 = 10_000_000;
 
 type DirMap = HashMap<String, u64>;
 
@@ -31,7 +31,7 @@ impl AccumulatedBytes {
     self.count += count;
 
     if self.last_reported_count == 0 ||
-       self.count - self.last_reported_count >= *MED_SIZE {
+       self.count - self.last_reported_count >= MED_SIZE {
       let mut console = io::stdout();
       write!(console, "\rCounted {} bytes.", nice_num(self.count)).unwrap();
       console.flush().unwrap();
@@ -137,10 +137,10 @@ fn load_or_create_csvfile(csvfile: &Path, map: &mut DirMap) {
   }
 }
 
-fn create_biggest_csvfile(csvfile: &Path, map: &DirMap, big_size: &u64) {
+fn create_biggest_csvfile(csvfile: &Path, map: &DirMap, big_size: u64) {
   let mut vec = Vec::new();
 
-  for (path_str, path_size) in map.iter() {
+  for (path_str, &path_size) in map.iter() {
     if path_size >= big_size {
       vec.push((path_str, path_size));
     }
@@ -149,7 +149,7 @@ fn create_biggest_csvfile(csvfile: &Path, map: &DirMap, big_size: &u64) {
   vec.sort_by_key(|&(_, size)| size );
 
   println!("{} directories are bigger than {} bytes.",
-           nice_num(vec.len()), nice_num(*big_size));
+           nice_num(vec.len()), nice_num(big_size));
 
   let mut csv_writer = csv::Writer::from_file(csvfile).unwrap();
 
