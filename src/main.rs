@@ -17,17 +17,17 @@ const MED_SIZE: u64 = 10_000_000;
 
 type DirMap = HashMap<String, u64>;
 
-struct AccumulatedBytes {
+struct Reporter {
   count: u64,
   last_reported_count: u64,
 }
 
-impl AccumulatedBytes {
-  fn new() -> AccumulatedBytes {
-    AccumulatedBytes { count: 0, last_reported_count: 0 }
+impl Reporter {
+  fn new() -> Reporter {
+    Reporter { count: 0, last_reported_count: 0 }
   }
 
-  fn add(&mut self, count: u64) -> u64 {
+  fn count_bytes(&mut self, count: u64) -> u64 {
     self.count += count;
 
     if self.last_reported_count == 0 ||
@@ -42,7 +42,7 @@ impl AccumulatedBytes {
     count
   }
 
-  fn report_access_error(&mut self, path: &str, e: io::Error) {
+  fn error_accessing(&mut self, path: &str, e: io::Error) {
     println!("\rError accessing {}: {}.", path, e);
     self.last_reported_count = 0;
   }
@@ -88,11 +88,11 @@ fn nice_num_works() {
 fn get_dir_size(map: &mut DirMap,
                 writer: &mut csv::Writer<fs::File>,
                 path: &Path,
-                accumulator: &mut AccumulatedBytes) -> u64 {
+                reporter: &mut Reporter) -> u64 {
   let path_str = path.to_str().unwrap();
 
   match map.get(path_str) {
-    Some(size) => return accumulator.add(*size),
+    Some(size) => return reporter.count_bytes(*size),
     None => {},
   }
 
@@ -105,14 +105,14 @@ fn get_dir_size(map: &mut DirMap,
         let subpath = entry.path();
         let metadata = entry.metadata().unwrap();
         if metadata.is_dir() {
-          total += get_dir_size(map, writer, &subpath, accumulator);
+          total += get_dir_size(map, writer, &subpath, reporter);
         } else {
-          total += accumulator.add(metadata.len());
+          total += reporter.count_bytes(metadata.len());
         }
       }
     },
     Err(e) => {
-      accumulator.report_access_error(path_str, e);
+      reporter.error_accessing(path_str, e);
     },
   }
 
@@ -176,9 +176,9 @@ fn main() {
 
   let file = fs::OpenOptions::new().append(true).open(csvfile).unwrap();
   let mut csv_writer = csv::Writer::from_writer(file);
-  let mut accumulator = AccumulatedBytes::new();
+  let mut reporter = Reporter::new();
   let size = get_dir_size(&mut map, &mut csv_writer, root_path.as_path(),
-                          &mut accumulator);
+                          &mut reporter);
 
   println!("\nTotal size of {} is {} bytes.",
            root_path.to_str().unwrap(), nice_num(size));
