@@ -10,10 +10,10 @@ use reporter::Reporter;
 
 type DirMap = HashMap<String, u64>;
 
-pub fn get_dir_size(map: &mut DirMap,
-                    writer: &mut csv::Writer<fs::File>,
-                    path: &Path,
-                    reporter: &mut Reporter) -> u64 {
+fn get_dir_size(map: &mut DirMap,
+                writer: &mut csv::Writer<fs::File>,
+                path: &Path,
+                reporter: &mut Reporter) -> u64 {
   let path_str = path.to_str().unwrap();
 
   match map.get(path_str) {
@@ -47,7 +47,7 @@ pub fn get_dir_size(map: &mut DirMap,
   total
 }
 
-pub fn load_or_create_csvfile(csvfile: &Path, map: &mut DirMap) {
+fn load_or_create_csvfile(csvfile: &Path, map: &mut DirMap) {
   if csvfile.exists() {
     println!("Loading {}...", csvfile.to_str().unwrap());
     let mut reader = csv::Reader::from_file(csvfile).unwrap();
@@ -60,6 +60,25 @@ pub fn load_or_create_csvfile(csvfile: &Path, map: &mut DirMap) {
     let mut file = fs::File::create(csvfile).unwrap();
     file.write_all(b"Directory,Size\n").unwrap();
   }
+}
+
+pub fn create_csvfile(csvfile: &Path,
+                      root_path: &Path,
+                      mut map: &mut DirMap,
+                      mut reporter: &mut Reporter) {
+  load_or_create_csvfile(&csvfile, &mut map);
+
+  let file = fs::OpenOptions::new().append(true).open(csvfile).unwrap();
+  let mut csv_writer = csv::Writer::from_writer(file);
+  let size = get_dir_size(
+    &mut map,
+    &mut csv_writer,
+    root_path,
+    &mut reporter
+  );
+
+  println!("\nTotal size of {} is {} bytes.",
+           root_path.to_str().unwrap(), nice_num(size));
 }
 
 pub fn create_biggest_csvfile(csvfile: &Path, map: &DirMap, big_size: u64) {
