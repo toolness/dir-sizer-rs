@@ -1,6 +1,7 @@
 extern crate csv;
 
 use std::io::prelude::*;
+use std::io;
 use std::env;
 use std::path::PathBuf;
 use std::path::Path;
@@ -12,13 +13,39 @@ const CSV_FILE: &'static str = "dirs.csv";
 const BIGGEST_CSV_FILE: &'static str = "biggest_dirs.csv";
 const BIG_SIZE: &'static u64 = &100_000_000;
 
+struct AccumulatedBytes {
+  count: u64,
+  last_reported_count: u64,
+}
+
+impl AccumulatedBytes {
+  fn new() -> AccumulatedBytes {
+    AccumulatedBytes { count: 0, last_reported_count: 0 }
+  }
+
+  fn add(&mut self, count: u64) -> u64 {
+    self.count += count;
+
+    if self.count - self.last_reported_count >= *BIG_SIZE {
+      let mut console = io::stdout();
+      write!(console, "\rCounted {} bytes.", self.count).unwrap();
+      console.flush().unwrap();
+
+      self.last_reported_count = self.count;
+    }
+
+    count
+  }
+}
+
 fn get_dir_size(map: &mut HashMap<String, u64>,
                 writer: &mut csv::Writer<fs::File>,
-                path: &Path) -> u64 {
+                path: &Path,
+                accumulator: &mut AccumulatedBytes) -> u64 {
   let path_str = path.to_str().unwrap();
 
   match map.get(path_str) {
-    Some(size) => return *size,
+    Some(size) => return accumulator.add(*size),
     None => {},
   }
 
@@ -31,14 +58,14 @@ fn get_dir_size(map: &mut HashMap<String, u64>,
         let subpath = entry.path();
         let metadata = entry.metadata().unwrap();
         if metadata.is_dir() {
-          total += get_dir_size(map, writer, &subpath);
+          total += get_dir_size(map, writer, &subpath, accumulator);
         } else {
-          total += metadata.len();
+          total += accumulator.add(metadata.len());
         }
       }
     },
     Err(e) => {
-      println!("Error accessing {}: {}.", path_str, e);
+      println!("\rError accessing {}: {}.", path_str, e);
     },
   }
 
@@ -102,9 +129,12 @@ fn main() {
 
   let file = fs::OpenOptions::new().append(true).open(csvfile).unwrap();
   let mut csv_writer = csv::Writer::from_writer(file);
-  let size = get_dir_size(&mut map, &mut csv_writer, root_path.as_path());
+  let mut accumulator = AccumulatedBytes::new();
+  let size = get_dir_size(&mut map, &mut csv_writer, root_path.as_path(),
+                          &mut accumulator);
 
-  println!("Total size of {:?} is {} bytes.", root_path, size);
+  println!("\nTotal size of {} is {} bytes.",
+           root_path.to_str().unwrap(), size);
 
   create_biggest_csvfile(&Path::new(BIGGEST_CSV_FILE), &map, BIG_SIZE);
 }
