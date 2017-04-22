@@ -4,10 +4,13 @@ use std::io::prelude::*;
 use std::env;
 use std::path::PathBuf;
 use std::path::Path;
+use std::vec::Vec;
 use std::fs;
 use std::collections::HashMap;
 
 const CSV_FILE: &'static str = "dirs.csv";
+const BIGGEST_CSV_FILE: &'static str = "biggest_dirs.csv";
+const BIG_SIZE: &'static u64 = &100_000_000;
 
 fn get_dir_size(map: &mut HashMap<String, u64>,
                 writer: &mut csv::Writer<fs::File>,
@@ -70,8 +73,32 @@ fn main() {
   }
 
   let file = fs::OpenOptions::new().append(true).open(csvfile).unwrap();
-  let mut writer = csv::Writer::from_writer(file);
-  let size = get_dir_size(&mut map, &mut writer, root_path.as_path());
+  let mut csv_writer = csv::Writer::from_writer(file);
+  let size = get_dir_size(&mut map, &mut csv_writer, root_path.as_path());
 
-  println!("Total size of {:?} is {}.", root_path, size);
+  println!("Total size of {:?} is {} bytes.", root_path, size);
+
+  let mut vec = Vec::new();
+
+  for (path_str, path_size) in map.iter() {
+    if path_size >= BIG_SIZE {
+      vec.push((path_str, path_size));
+    }
+  }
+
+  vec.sort_by_key(|&(_, size)| size );
+
+  println!("{} directories are bigger than {} bytes.", vec.len(), BIG_SIZE);
+
+  let mut biggest_csv_writer = csv::Writer::from_file(Path::new(
+    BIGGEST_CSV_FILE
+  )).unwrap();
+
+  biggest_csv_writer.encode(("Directory", "Size")).unwrap();
+
+  for &(path_str, path_size) in vec.iter() {
+    biggest_csv_writer.encode((path_str, path_size)).unwrap();
+  }
+
+  println!("Wrote {}.", BIGGEST_CSV_FILE);
 }
