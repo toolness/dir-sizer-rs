@@ -49,6 +49,7 @@ fn main() {
 
   dir_map::create_biggest_csvfile(
     &Path::new(BIGGEST_CSV_FILE),
+    root_path.as_path(),
     &map,
     BIG_SIZE
   );

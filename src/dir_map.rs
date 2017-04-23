@@ -81,11 +81,15 @@ pub fn create_csvfile(csvfile: &Path,
            root_path.to_str().unwrap(), nice_num(size));
 }
 
-pub fn create_biggest_csvfile(csvfile: &Path, map: &DirMap, big_size: u64) {
+pub fn create_biggest_csvfile(csvfile: &Path,
+                              root_path: &Path,
+                              map: &DirMap,
+                              big_size: u64) {
   let mut vec = Vec::new();
+  let root_path_str = root_path.to_str().unwrap();
 
   for (path_str, &path_size) in map.iter() {
-    if path_size >= big_size {
+    if path_size >= big_size && path_str.starts_with(root_path_str) {
       vec.push((path_str, path_size));
     }
   }
