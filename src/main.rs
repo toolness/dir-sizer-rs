@@ -12,8 +12,8 @@ use clap::{App, Arg};
 use dir_sizer::reporter::Reporter;
 use dir_sizer::dir_map;
 
-const CSV_FILE: &'static str = "dirs.csv";
-const BIGGEST_CSV_FILE: &'static str = "biggest_dirs.csv";
+const DEFAULT_CSV_FILE: &'static str = "dirs.csv";
+const DEFAULT_BIG_CSV_FILE: &'static str = "big_dirs.csv";
 const BIG_SIZE: u64 = 100_000_000;
 
 fn main() {
@@ -22,6 +22,20 @@ fn main() {
     .author(crate_authors!("\n"))
     .about("Generates information about the directories taking up \
            lots of space on your system.")
+    .arg(Arg::with_name("csv_file")
+         .short("c")
+         .long("csv-file")
+         .help("Name of CSV file in which to store/cache all directory info")
+         .value_name("FILE")
+         .default_value(DEFAULT_CSV_FILE)
+         .takes_value(true))
+    .arg(Arg::with_name("big_csv_file")
+         .short("b")
+         .long("big-csv-file")
+         .help("Name of CSV file in which to list big directories")
+         .value_name("FILE")
+         .default_value(DEFAULT_BIG_CSV_FILE)
+         .takes_value(true))
     .arg(Arg::with_name("PATH")
          .help("The directory to profile (defaults to current working dir)")
          .index(1))
@@ -41,14 +55,14 @@ fn main() {
   let mut reporter = Reporter::new();
 
   dir_map::create_csvfile(
-    &Path::new(CSV_FILE),
+    &Path::new(matches.value_of("csv_file").unwrap()),
     root_path.as_path(),
     &mut map,
     &mut reporter
   );
 
-  dir_map::create_biggest_csvfile(
-    &Path::new(BIGGEST_CSV_FILE),
+  dir_map::create_big_csvfile(
+    &Path::new(matches.value_of("big_csv_file").unwrap()),
     root_path.as_path(),
     &map,
     BIG_SIZE
