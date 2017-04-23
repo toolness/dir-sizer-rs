@@ -2,6 +2,7 @@
 name = "dir-sizer"
 version = "0.1.0"
 authors = ["Atul Varma <varmaa@gmail.com>"]
+license = "CC0-1.0"
 
 [dependencies]
 csv = "0.15.0"
