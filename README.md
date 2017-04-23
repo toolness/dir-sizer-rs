@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/toolness/dir-sizer-rs.svg?branch=master)](https://travis-ci.org/toolness/dir-sizer-rs)
+
 This is a simple Rust program that generates information about
 the directories taking up lots of space on your system.
 
