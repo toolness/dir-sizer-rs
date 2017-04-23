@@ -1,4 +1,4 @@
-#[macro_use(crate_name, crate_version)]
+#[macro_use(crate_name, crate_version, crate_authors)]
 extern crate clap;
 extern crate dir_sizer;
 
@@ -19,7 +19,7 @@ const BIG_SIZE: u64 = 100_000_000;
 fn main() {
   let matches = App::new(crate_name!())
     .version(crate_version!())
-    .author("Atul Varma <varmaa@gmail.com>")
+    .author(crate_authors!("\n"))
     .about("Generates information about the directories taking up \
            lots of space on your system.")
     .arg(Arg::with_name("PATH")
