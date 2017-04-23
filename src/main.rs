@@ -1,3 +1,4 @@
+#[macro_use(crate_name, crate_version)]
 extern crate clap;
 extern crate dir_sizer;
 
@@ -11,14 +12,13 @@ use clap::{App, Arg};
 use dir_sizer::reporter::Reporter;
 use dir_sizer::dir_map;
 
-const VERSION: &'static str = "v1.0.0";
 const CSV_FILE: &'static str = "dirs.csv";
 const BIGGEST_CSV_FILE: &'static str = "biggest_dirs.csv";
 const BIG_SIZE: u64 = 100_000_000;
 
 fn main() {
-  let matches = App::new("dir_sizer")
-    .version(VERSION)
+  let matches = App::new(crate_name!())
+    .version(crate_version!())
     .author("Atul Varma <varmaa@gmail.com>")
     .about("Generates information about the directories taking up \
            lots of space on your system.")
