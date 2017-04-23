@@ -11,10 +11,11 @@ use clap::{App, Arg};
 
 use dir_sizer::reporter::Reporter;
 use dir_sizer::dir_map;
+use dir_sizer::util::strip_commas;
 
 const DEFAULT_CSV_FILE: &'static str = "dirs.csv";
 const DEFAULT_BIG_CSV_FILE: &'static str = "big_dirs.csv";
-const BIG_SIZE: u64 = 100_000_000;
+const DEFAULT_BIG_SIZE: &'static str = "100,000,000";
 
 fn main() {
   let matches = App::new(crate_name!())
@@ -36,11 +37,20 @@ fn main() {
          .value_name("FILE")
          .default_value(DEFAULT_BIG_CSV_FILE)
          .takes_value(true))
+    .arg(Arg::with_name("big_size")
+         .short("s")
+         .long("big-size")
+         .help("A dir must be this big (in bytes) to be considered 'big'")
+         .value_name("SIZE")
+         .default_value(DEFAULT_BIG_SIZE)
+         .takes_value(true))
     .arg(Arg::with_name("PATH")
          .help("The directory to profile (defaults to current working dir)")
          .index(1))
     .get_matches();
 
+  let big_size = strip_commas(matches.value_of("big_size").unwrap())
+    .parse::<u64>().unwrap();
   let mut map = HashMap::new();
   let mut root_path = env::current_dir().unwrap();
 
@@ -65,6 +75,6 @@ fn main() {
     &Path::new(matches.value_of("big_csv_file").unwrap()),
     root_path.as_path(),
     &map,
-    BIG_SIZE
+    big_size
   );
 }

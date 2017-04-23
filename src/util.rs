@@ -1,5 +1,23 @@
 use std::fmt::Display;
 
+pub fn strip_commas(string: &str) -> String {
+  let mut result = String::new();
+
+  for c in string.chars() {
+    if c != ',' {
+      result.push(c);
+    }
+  }
+
+  return result;
+}
+
+#[test]
+fn strip_commas_works() {
+  assert_eq!(strip_commas("100"), "100");
+  assert_eq!(strip_commas("1,000"), "1000");
+}
+
 pub fn nice_num<T: Display>(number: T) -> String {
   let mut result = String::new();
   let num_str = format!("{}", number);
