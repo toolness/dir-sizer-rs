@@ -1,7 +1,7 @@
 use std::io::prelude::*;
 use std::io;
 
-use util::nice_num;
+use util::WithCommas;
 
 // We don't want to spam stdout too much, so only display a byte
 // count update when at least the following number of bytes have been
@@ -24,7 +24,8 @@ impl Reporter {
     if self.last_reported_count == 0 ||
        self.count - self.last_reported_count >= REPORT_CHUNK_SIZE {
       let mut console = io::stdout();
-      write!(console, "\rCounted {} bytes.", nice_num(self.count)).unwrap();
+      write!(console,
+             "\rCounted {} bytes.", self.count.with_commas()).unwrap();
       console.flush().unwrap();
 
       self.last_reported_count = self.count;

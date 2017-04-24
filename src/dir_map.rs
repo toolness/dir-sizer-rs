@@ -5,7 +5,7 @@ use std::path::Path;
 use std::collections::HashMap;
 use std::fs;
 
-use util::nice_num;
+use util::WithCommas;
 use reporter::Reporter;
 
 type DirMap = HashMap<String, u64>;
@@ -55,7 +55,7 @@ fn load_or_create_csvfile(csvfile: &Path, map: &mut DirMap) {
       let (path_str, size): (String, u64) = record.unwrap();
       map.insert(path_str, size);
     }
-    println!("Loaded {} record(s).", nice_num(map.len()));
+    println!("Loaded {} record(s).", map.len().with_commas());
   } else {
     let mut file = fs::File::create(csvfile).unwrap();
     file.write_all(b"Directory,Size\n").unwrap();
@@ -78,7 +78,7 @@ pub fn create_csvfile(csvfile: &Path,
   );
 
   println!("\nTotal size of {} is {} bytes.",
-           root_path.to_str().unwrap(), nice_num(size));
+           root_path.to_str().unwrap(), size.with_commas());
 }
 
 pub fn create_big_csvfile(csvfile: &Path,
@@ -97,7 +97,7 @@ pub fn create_big_csvfile(csvfile: &Path,
   vec.sort_by_key(|&(_, size)| size );
 
   println!("{} directories are bigger than {} bytes.",
-           nice_num(vec.len()), nice_num(big_size));
+           vec.len().with_commas(), big_size.with_commas());
 
   let mut csv_writer = csv::Writer::from_file(csvfile).unwrap();
 
