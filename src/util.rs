@@ -48,7 +48,7 @@ impl<T: Display> WithCommas for T {
 }
 
 #[test]
-fn nice_num_works() {
+fn with_commas_works() {
   assert_eq!(1.with_commas(), "1");
   assert_eq!(15.with_commas(), "15");
   assert_eq!(153.with_commas(), "153");
