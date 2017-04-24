@@ -1,3 +1,3 @@
 pub mod util;
 pub mod reporter;
-pub mod dir_map;
+pub mod dir_mapper;
