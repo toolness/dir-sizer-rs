@@ -10,6 +10,26 @@ use reporter::Reporter;
 
 type DirMap = HashMap<String, u64>;
 
+pub struct DirMapper<'a> {
+  sizes: HashMap<String, u64>,
+  path: &'a Path
+}
+
+impl<'a> DirMapper<'a> {
+  pub fn new(path: &Path) -> DirMapper {
+    DirMapper { sizes: HashMap::new(), path: path }
+  }
+
+  pub fn create_csvfile(&mut self, csvfile: &Path,
+                        mut reporter: &mut Reporter) {
+    create_csvfile(csvfile, self.path, &mut self.sizes, reporter)
+  }
+
+  pub fn create_big_csvfile(&mut self, csvfile: &Path, big_size: u64) {
+    create_big_csvfile(csvfile, self.path, &mut self.sizes, big_size)
+  }
+}
+
 fn get_dir_size(map: &mut DirMap,
                 writer: &mut csv::Writer<fs::File>,
                 path: &Path,
@@ -62,10 +82,10 @@ fn load_or_create_csvfile(csvfile: &Path, map: &mut DirMap) {
   }
 }
 
-pub fn create_csvfile(csvfile: &Path,
-                      root_path: &Path,
-                      mut map: &mut DirMap,
-                      mut reporter: &mut Reporter) {
+fn create_csvfile(csvfile: &Path,
+                  root_path: &Path,
+                  mut map: &mut DirMap,
+                  mut reporter: &mut Reporter) {
   load_or_create_csvfile(&csvfile, &mut map);
 
   let file = fs::OpenOptions::new().append(true).open(csvfile).unwrap();
@@ -81,10 +101,10 @@ pub fn create_csvfile(csvfile: &Path,
            root_path.to_str().unwrap(), size.with_commas());
 }
 
-pub fn create_big_csvfile(csvfile: &Path,
-                          root_path: &Path,
-                          map: &DirMap,
-                          big_size: u64) {
+fn create_big_csvfile(csvfile: &Path,
+                      root_path: &Path,
+                      map: &DirMap,
+                      big_size: u64) {
   let mut vec = Vec::new();
   let root_path_str = root_path.to_str().unwrap();
 

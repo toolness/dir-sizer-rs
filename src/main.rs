@@ -6,11 +6,10 @@ use std::env;
 use std::process;
 use std::path::PathBuf;
 use std::path::Path;
-use std::collections::HashMap;
 use clap::{App, Arg};
 
 use dir_sizer::reporter::Reporter;
-use dir_sizer::dir_map;
+use dir_sizer::dir_mapper::DirMapper;
 use dir_sizer::util::strip_commas;
 
 const DEFAULT_CSV_FILE: &'static str = "dirs.csv";
@@ -51,7 +50,6 @@ fn main() {
 
   let big_size = strip_commas(matches.value_of("big_size").unwrap())
     .parse::<u64>().unwrap();
-  let mut map = HashMap::new();
   let mut root_path = env::current_dir().unwrap();
 
   if let Some(path) = matches.value_of("PATH") {
@@ -63,18 +61,15 @@ fn main() {
   }
 
   let mut reporter = Reporter::new();
+  let mut mapper = DirMapper::new(root_path.as_path());
 
-  dir_map::create_csvfile(
+  mapper.create_csvfile(
     &Path::new(matches.value_of("csv_file").unwrap()),
-    root_path.as_path(),
-    &mut map,
     &mut reporter
   );
 
-  dir_map::create_big_csvfile(
+  mapper.create_big_csvfile(
     &Path::new(matches.value_of("big_csv_file").unwrap()),
-    root_path.as_path(),
-    &map,
     big_size
   );
 }
