@@ -14,8 +14,8 @@ pub struct Reporter {
 }
 
 impl Reporter {
-  pub fn new() -> Reporter {
-    Reporter { count: 0, last_reported_count: 0 }
+  pub fn new() -> Self {
+    Self { count: 0, last_reported_count: 0 }
   }
 
   pub fn count_bytes(&mut self, count: u64) -> u64 {

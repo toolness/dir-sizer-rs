@@ -16,8 +16,8 @@ pub struct DirMapper<'a> {
 }
 
 impl<'a> DirMapper<'a> {
-  pub fn new(path: &Path) -> DirMapper {
-    DirMapper { sizes: HashMap::new(), path: path }
+  pub fn new(path: &'a Path) -> Self {
+    Self { sizes: HashMap::new(), path: path }
   }
 
   pub fn create_csvfile(&mut self, csvfile: &Path,
