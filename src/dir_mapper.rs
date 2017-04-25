@@ -2,31 +2,41 @@ extern crate csv;
 
 use std::io::prelude::*;
 use std::path::Path;
+use std::path::PathBuf;
 use std::collections::HashMap;
 use std::fs;
 
 use util::WithCommas;
 use reporter::Reporter;
 
-pub struct DirMapper<'a> {
+pub struct DirMapper {
   sizes: HashMap<String, u64>,
-  path: &'a Path
+  path: PathBuf
 }
 
-impl<'a> DirMapper<'a> {
-  pub fn new(path: &'a Path) -> Self {
-    Self { sizes: HashMap::new(), path: path }
+impl DirMapper {
+  pub fn new<P: AsRef<Path>>(path: P) -> Self {
+    Self {
+      sizes: HashMap::new(),
+      path: path.as_ref().to_path_buf()
+    }
   }
 
-  pub fn create_csvfile(&mut self, csvfile: &Path,
-                        mut reporter: &mut Reporter) {
+  pub fn create_csvfile<P: AsRef<Path>>(
+    &mut self,
+    csvfile: P,
+    mut reporter: &mut Reporter
+  ) {
+    let csvfile = csvfile.as_ref();
+
     self.load_or_create_csvfile(csvfile);
 
     let file = fs::OpenOptions::new().append(true).open(csvfile).unwrap();
     let mut csv_writer = csv::Writer::from_writer(file);
+    let root_path = self.path.clone();
     let size = self.get_dir_size(
       &mut csv_writer,
-      self.path,
+      root_path.as_path(),
       &mut reporter
     );
 
@@ -34,7 +44,13 @@ impl<'a> DirMapper<'a> {
              self.path.to_str().unwrap(), size.with_commas());
   }
 
-  pub fn create_big_csvfile(&mut self, csvfile: &Path, big_size: u64) {
+  pub fn create_big_csvfile<P: AsRef<Path>>(
+    &mut self,
+    csvfile: P,
+    big_size: u64
+  ) {
+    let csvfile = csvfile.as_ref();
+
     let mut vec = Vec::new();
     let root_path_str = self.path.to_str().unwrap();
 

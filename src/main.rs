@@ -5,7 +5,6 @@ extern crate dir_sizer;
 use std::env;
 use std::process;
 use std::path::PathBuf;
-use std::path::Path;
 use clap::{App, Arg};
 
 use dir_sizer::reporter::Reporter;
@@ -61,15 +60,15 @@ fn main() {
   }
 
   let mut reporter = Reporter::new();
-  let mut mapper = DirMapper::new(root_path.as_path());
+  let mut mapper = DirMapper::new(root_path);
 
   mapper.create_csvfile(
-    &Path::new(matches.value_of("csv_file").unwrap()),
+    matches.value_of("csv_file").unwrap(),
     &mut reporter
   );
 
   mapper.create_big_csvfile(
-    &Path::new(matches.value_of("big_csv_file").unwrap()),
+    matches.value_of("big_csv_file").unwrap(),
     big_size
   );
 }
