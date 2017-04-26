@@ -41,7 +41,7 @@ impl DirMapper {
     );
 
     println!("\nTotal size of {} is {} bytes.",
-             self.path.to_str().unwrap(), size.with_commas());
+             self.path.to_string_lossy(), size.with_commas());
   }
 
   pub fn create_big_csvfile<P: AsRef<Path>>(
@@ -73,12 +73,12 @@ impl DirMapper {
       csv_writer.encode((path_str, path_size)).unwrap();
     }
 
-    println!("Wrote {}.", csvfile.to_str().unwrap());
+    println!("Wrote {}.", csvfile.to_string_lossy());
   }
 
   fn load_or_create_csvfile(&mut self, csvfile: &Path) {
     if csvfile.exists() {
-      println!("Loading {}...", csvfile.to_str().unwrap());
+      println!("Loading {}...", csvfile.to_string_lossy());
       let mut reader = csv::Reader::from_file(csvfile).unwrap();
       for record in reader.decode() {
         let (path_str, size): (String, u64) = record.unwrap();
